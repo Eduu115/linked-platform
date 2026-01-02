@@ -34,3 +34,7 @@ dist-ssr
 # Database
 *.db
 *.sqlite
+
+# Uploads (imágenes subidas)
+server/uploads/*
+!server/uploads/.gitkeep

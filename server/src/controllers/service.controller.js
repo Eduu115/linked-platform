@@ -52,7 +52,17 @@ export const getServiceById = async (req, res) => {
 
 export const createService = async (req, res) => {
   try {
-    const { category, title, description, features, price, period, popular } = req.body
+    // Parsear features si viene como string
+    let features = req.body.features
+    if (typeof features === 'string') {
+      try {
+        features = JSON.parse(features)
+      } catch {
+        features = features.split('\n').map(f => f.trim()).filter(f => f)
+      }
+    }
+
+    const { category, title, description, price, period, popular } = req.body
 
     const newService = await prisma.service.create({
       data: {
@@ -62,7 +72,7 @@ export const createService = async (req, res) => {
         features,
         price: parseFloat(price),
         period,
-        popular: popular || false,
+        popular: popular === 'true' || popular === true,
       },
     })
 
@@ -83,19 +93,45 @@ export const createService = async (req, res) => {
 export const updateService = async (req, res) => {
   try {
     const { id } = req.params
-    const { category, title, description, features, price, period, popular } = req.body
+    
+    // Obtener servicio actual
+    const currentService = await prisma.service.findUnique({
+      where: { id: parseInt(id) },
+    })
+
+    if (!currentService) {
+      return res.status(404).json({
+        success: false,
+        message: 'Service not found',
+      })
+    }
+
+    // Parsear features si viene como string
+    let features = req.body.features
+    if (features !== undefined) {
+      if (typeof features === 'string') {
+        try {
+          features = JSON.parse(features)
+        } catch {
+          features = features.split('\n').map(f => f.trim()).filter(f => f)
+        }
+      }
+    }
+
+    const { category, title, description, price, period, popular } = req.body
+
+    const updateData = {}
+    if (category !== undefined) updateData.category = category
+    if (title !== undefined) updateData.title = title
+    if (description !== undefined) updateData.description = description
+    if (features !== undefined) updateData.features = features
+    if (price !== undefined) updateData.price = parseFloat(price)
+    if (period !== undefined) updateData.period = period
+    if (popular !== undefined) updateData.popular = popular === 'true' || popular === true
 
     const updatedService = await prisma.service.update({
       where: { id: parseInt(id) },
-      data: {
-        category,
-        title,
-        description,
-        features,
-        price: price !== undefined ? parseFloat(price) : undefined,
-        period,
-        popular,
-      },
+      data: updateData,
     })
 
     res.json({

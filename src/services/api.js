@@ -102,19 +102,79 @@ export const projectsAPI = {
     return data.project || data.data || data
   },
 
-  create: async (projectData) => {
-    const data = await request('/projects', {
-      method: 'POST',
-      body: JSON.stringify(projectData),
+  create: async (projectData, file = null) => {
+    const formData = new FormData()
+    
+    if (file) {
+      formData.append('coverImage', file)
+    }
+    
+    // Añadir otros campos
+    Object.keys(projectData).forEach(key => {
+      if (key !== 'image' || !file) {
+        const value = Array.isArray(projectData[key]) 
+          ? JSON.stringify(projectData[key])
+          : projectData[key]
+        formData.append(key, value)
+      }
     })
+    
+    // Si no hay archivo pero hay URL de imagen, añadirla
+    if (!file && projectData.image) {
+      formData.append('image', projectData.image)
+    }
+
+    const token = localStorage.getItem('token')
+    const response = await fetch(`${API_URL}/projects`, {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    })
+
+    const data = await response.json()
+    if (!response.ok) {
+      throw new Error(data.message || 'Error creating project')
+    }
     return data.project || data.data || data
   },
 
-  update: async (id, projectData) => {
-    const data = await request(`/projects/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(projectData),
+  update: async (id, projectData, file = null) => {
+    const formData = new FormData()
+    
+    if (file) {
+      formData.append('coverImage', file)
+    }
+    
+    // Añadir otros campos
+    Object.keys(projectData).forEach(key => {
+      if (key !== 'image' || !file) {
+        const value = Array.isArray(projectData[key]) 
+          ? JSON.stringify(projectData[key])
+          : projectData[key]
+        formData.append(key, value)
+      }
     })
+    
+    // Si no hay archivo pero hay URL de imagen, añadirla
+    if (!file && projectData.image) {
+      formData.append('image', projectData.image)
+    }
+
+    const token = localStorage.getItem('token')
+    const response = await fetch(`${API_URL}/projects/${id}`, {
+      method: 'PUT',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    })
+
+    const data = await response.json()
+    if (!response.ok) {
+      throw new Error(data.message || 'Error updating project')
+    }
     return data.project || data.data || data
   },
 

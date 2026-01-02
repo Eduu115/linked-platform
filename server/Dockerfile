@@ -21,6 +21,9 @@ COPY . .
 # Hacer ejecutables los scripts
 RUN chmod +x scripts/*.sh 2>/dev/null || true
 
+# Crear directorio de uploads
+RUN mkdir -p uploads
+
 # Generar Prisma Client
 RUN npx prisma generate
 

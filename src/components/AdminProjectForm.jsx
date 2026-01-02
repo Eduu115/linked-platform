@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 
 const AdminProjectForm = () => {
   const [showForm, setShowForm] = useState(false)
+  const [editingProject, setEditingProject] = useState(null)
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
@@ -14,7 +15,9 @@ const AdminProjectForm = () => {
     previewUrl: '',
     detailsUrl: '',
   })
-  const [success, setSuccess] = useState(false)
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [previewImage, setPreviewImage] = useState(null)
+  const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -32,6 +35,70 @@ const AdminProjectForm = () => {
     fetchProjects()
   }, [])
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      // Validar tipo de archivo
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg']
+      if (!allowedTypes.includes(file.type)) {
+        setError('Solo se permiten archivos PNG, JPG o JPEG')
+        return
+      }
+      
+      // Validar tamaño (5MB máximo)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('El archivo no puede ser mayor a 5MB')
+        return
+      }
+      
+      setSelectedFile(file)
+      setError('')
+      
+      // Crear preview
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreviewImage(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleEdit = (project) => {
+    setEditingProject(project)
+    setFormData({
+      name: project.name,
+      description: project.description,
+      technologies: Array.isArray(project.technologies) 
+        ? project.technologies.join(', ') 
+        : project.technologies || '',
+      image: project.image || '',
+      previewUrl: project.previewUrl || '',
+      detailsUrl: project.detailsUrl || '',
+    })
+    setSelectedFile(null)
+    setPreviewImage(project.image || null)
+    setShowForm(true)
+    setError('')
+    setSuccess('')
+  }
+
+  const handleCancel = () => {
+    setShowForm(false)
+    setEditingProject(null)
+    setFormData({
+      name: '',
+      description: '',
+      technologies: '',
+      image: '',
+      previewUrl: '',
+      detailsUrl: '',
+    })
+    setSelectedFile(null)
+    setPreviewImage(null)
+    setError('')
+    setSuccess(false)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -43,17 +110,28 @@ const AdminProjectForm = () => {
         .map((tech) => tech.trim())
         .filter((tech) => tech)
 
-      const newProject = {
+      const projectData = {
         name: formData.name,
         description: formData.description,
         technologies: technologiesArray,
-        image: formData.image || 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop',
         previewUrl: formData.previewUrl,
         detailsUrl: formData.detailsUrl || `/projects/${formData.name.toLowerCase().replace(/\s+/g, '-')}`,
       }
 
-      await projectsAPI.create(newProject)
-      setSuccess(true)
+      // Solo incluir image si no hay archivo seleccionado
+      if (!selectedFile && formData.image) {
+        projectData.image = formData.image
+      }
+
+      if (editingProject) {
+        await projectsAPI.update(editingProject.id, projectData, selectedFile)
+        setSuccess('Proyecto actualizado exitosamente')
+      } else {
+        await projectsAPI.create(projectData, selectedFile)
+        setSuccess('Proyecto creado exitosamente')
+      }
+      
+      // Limpiar formulario
       setFormData({
         name: '',
         description: '',
@@ -62,17 +140,19 @@ const AdminProjectForm = () => {
         previewUrl: '',
         detailsUrl: '',
       })
+      setSelectedFile(null)
+      setPreviewImage(null)
       
       // Recargar proyectos
       const data = await projectsAPI.getAll()
       setProjects(Array.isArray(data) ? data : [])
       
       setTimeout(() => {
-        setSuccess(false)
-        setShowForm(false)
+        setSuccess('')
+        handleCancel()
       }, 2000)
     } catch (error) {
-      setError(error.message || 'Error al crear el proyecto')
+      setError(error.message || `Error al ${editingProject ? 'actualizar' : 'crear'} el proyecto`)
     }
   }
 
@@ -83,7 +163,26 @@ const AdminProjectForm = () => {
           Gestionar Proyectos
         </h2>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            if (showForm) {
+              handleCancel()
+            } else {
+              setShowForm(true)
+              setEditingProject(null)
+              setFormData({
+                name: '',
+                description: '',
+                technologies: '',
+                image: '',
+                previewUrl: '',
+                detailsUrl: '',
+              })
+              setSelectedFile(null)
+              setPreviewImage(null)
+              setError('')
+              setSuccess('')
+            }
+          }}
           className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
         >
           {showForm ? 'Cancelar' : 'Nuevo Proyecto'}
@@ -92,7 +191,7 @@ const AdminProjectForm = () => {
 
       {success && (
         <div className="mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 px-4 py-3 rounded">
-          Proyecto creado exitosamente
+          {success}
         </div>
       )}
 
@@ -109,7 +208,7 @@ const AdminProjectForm = () => {
           className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8"
         >
           <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-            Crear Nuevo Proyecto
+            {editingProject ? 'Editar Proyecto' : 'Crear Nuevo Proyecto'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -154,12 +253,42 @@ const AdminProjectForm = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                URL de Imagen
+                Imagen de Portada (opcional)
+              </label>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/jpg"
+                onChange={handleFileChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-gray-900 focus:border-gray-900"
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Formatos permitidos: PNG, JPG, JPEG. Tamaño máximo: 5MB
+              </p>
+              {previewImage && (
+                <div className="mt-4">
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="w-full h-48 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                O URL de Imagen (si no subes archivo)
               </label>
               <input
                 type="url"
                 value={formData.image}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, image: e.target.value })
+                  if (e.target.value) {
+                    setPreviewImage(e.target.value)
+                    setSelectedFile(null)
+                  }
+                }}
                 placeholder="https://..."
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-gray-900 focus:border-gray-900"
               />
@@ -196,7 +325,7 @@ const AdminProjectForm = () => {
               type="submit"
               className="w-full px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
             >
-              Crear Proyecto
+              {editingProject ? 'Actualizar Proyecto' : 'Crear Proyecto'}
             </button>
           </form>
         </motion.div>
@@ -223,6 +352,12 @@ const AdminProjectForm = () => {
                     {Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies}
                   </p>
                 </div>
+                <button
+                  onClick={() => handleEdit(project)}
+                  className="px-3 py-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                >
+                  Editar
+                </button>
               </div>
             ))}
           </div>

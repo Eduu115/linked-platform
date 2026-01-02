@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 
 const AdminServiceForm = () => {
   const [showForm, setShowForm] = useState(false)
+  const [editingService, setEditingService] = useState(null)
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
@@ -15,7 +16,7 @@ const AdminServiceForm = () => {
     period: 'mes',
     popular: false,
   })
-  const [success, setSuccess] = useState(false)
+  const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
 
   const categories = ['Hosting', 'Cloud Storage', 'Clases', 'Consultoría']
@@ -35,10 +36,44 @@ const AdminServiceForm = () => {
     fetchServices()
   }, [])
 
+  const handleEdit = (service) => {
+    setEditingService(service)
+    setFormData({
+      category: service.category,
+      title: service.title,
+      description: service.description,
+      features: Array.isArray(service.features) 
+        ? service.features.join('\n') 
+        : service.features || '',
+      price: service.price.toString(),
+      period: service.period,
+      popular: service.popular || false,
+    })
+    setShowForm(true)
+    setError('')
+    setSuccess('')
+  }
+
+  const handleCancel = () => {
+    setShowForm(false)
+    setEditingService(null)
+    setFormData({
+      category: 'Hosting',
+      title: '',
+      description: '',
+      features: '',
+      price: '',
+      period: 'mes',
+      popular: false,
+    })
+    setError('')
+    setSuccess('')
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    setSuccess(false)
+    setSuccess('')
 
     try {
       const featuresArray = formData.features
@@ -46,7 +81,7 @@ const AdminServiceForm = () => {
         .map((feature) => feature.trim())
         .filter((feature) => feature)
 
-      const newService = {
+      const serviceData = {
         category: formData.category,
         title: formData.title,
         description: formData.description,
@@ -56,8 +91,15 @@ const AdminServiceForm = () => {
         popular: formData.popular,
       }
 
-      await servicesAPI.create(newService)
-      setSuccess(true)
+      if (editingService) {
+        await servicesAPI.update(editingService.id, serviceData)
+        setSuccess('Servicio actualizado exitosamente')
+      } else {
+        await servicesAPI.create(serviceData)
+        setSuccess('Servicio creado exitosamente')
+      }
+      
+      // Limpiar formulario
       setFormData({
         category: 'Hosting',
         title: '',
@@ -73,11 +115,11 @@ const AdminServiceForm = () => {
       setServices(Array.isArray(data) ? data : [])
       
       setTimeout(() => {
-        setSuccess(false)
-        setShowForm(false)
+        setSuccess('')
+        handleCancel()
       }, 2000)
     } catch (error) {
-      setError(error.message || 'Error al crear el servicio')
+      setError(error.message || `Error al ${editingService ? 'actualizar' : 'crear'} el servicio`)
     }
   }
 
@@ -88,7 +130,25 @@ const AdminServiceForm = () => {
           Gestionar Servicios
         </h2>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            if (showForm) {
+              handleCancel()
+            } else {
+              setShowForm(true)
+              setEditingService(null)
+              setFormData({
+                category: 'Hosting',
+                title: '',
+                description: '',
+                features: '',
+                price: '',
+                period: 'mes',
+                popular: false,
+              })
+              setError('')
+              setSuccess('')
+            }
+          }}
           className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
         >
           {showForm ? 'Cancelar' : 'Nuevo Servicio'}
@@ -97,7 +157,7 @@ const AdminServiceForm = () => {
 
       {success && (
         <div className="mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 px-4 py-3 rounded">
-          Servicio creado exitosamente
+          {success}
         </div>
       )}
 
@@ -114,7 +174,7 @@ const AdminServiceForm = () => {
           className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8"
         >
           <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-            Crear Nuevo Servicio
+            {editingService ? 'Editar Servicio' : 'Crear Nuevo Servicio'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -224,7 +284,7 @@ const AdminServiceForm = () => {
               type="submit"
               className="w-full px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
             >
-              Crear Servicio
+              {editingService ? 'Actualizar Servicio' : 'Crear Servicio'}
             </button>
           </form>
         </motion.div>
@@ -251,6 +311,12 @@ const AdminServiceForm = () => {
                     {service.category} - €{service.price}/{service.period}
                   </p>
                 </div>
+                <button
+                  onClick={() => handleEdit(service)}
+                  className="px-3 py-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                >
+                  Editar
+                </button>
               </div>
             ))}
           </div>

@@ -1,4 +1,5 @@
 import prisma from '../config/database.js'
+import { getFileUrl, deleteFile } from '../middleware/upload.middleware.js'
 
 export const getProjects = async (req, res) => {
   try {
@@ -52,14 +53,36 @@ export const getProjectById = async (req, res) => {
 
 export const createProject = async (req, res) => {
   try {
-    const { name, description, technologies, image, previewUrl, detailsUrl } = req.body
+    // Parsear technologies si viene como string
+    let technologies = req.body.technologies
+    if (typeof technologies === 'string') {
+      try {
+        technologies = JSON.parse(technologies)
+      } catch {
+        technologies = technologies.split(',').map(t => t.trim()).filter(t => t)
+      }
+    }
+
+    const { name, description, previewUrl, detailsUrl } = req.body
+    
+    // Si hay archivo subido, usar su URL, sino usar la URL proporcionada o la por defecto
+    let imageUrl = req.body.image
+    // Si image viene como array (FormData puede duplicar campos), tomar el primer valor
+    if (Array.isArray(imageUrl)) {
+      imageUrl = imageUrl[0]
+    }
+    if (req.file) {
+      imageUrl = getFileUrl(req.file.filename, req)
+    } else if (!imageUrl) {
+      imageUrl = 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop'
+    }
 
     const newProject = await prisma.project.create({
       data: {
         name,
         description,
         technologies,
-        image: image || 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop',
+        image: imageUrl,
         previewUrl,
         detailsUrl: detailsUrl || `/projects/${name.toLowerCase().replace(/\s+/g, '-')}`,
       },
@@ -71,6 +94,10 @@ export const createProject = async (req, res) => {
       project: newProject,
     })
   } catch (error) {
+    // Si hay error y se subió un archivo, eliminarlo
+    if (req.file) {
+      deleteFile(req.file.filename)
+    }
     res.status(500).json({
       success: false,
       message: 'Error creating project',
@@ -82,18 +109,63 @@ export const createProject = async (req, res) => {
 export const updateProject = async (req, res) => {
   try {
     const { id } = req.params
-    const { name, description, technologies, image, previewUrl, detailsUrl } = req.body
+    
+    // Obtener proyecto actual para eliminar imagen anterior si se sube una nueva
+    const currentProject = await prisma.project.findUnique({
+      where: { id: parseInt(id) },
+    })
+
+    if (!currentProject) {
+      if (req.file) deleteFile(req.file.filename)
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found',
+      })
+    }
+
+    // Parsear technologies si viene como string
+    let technologies = req.body.technologies
+    if (technologies !== undefined) {
+      if (typeof technologies === 'string') {
+        try {
+          technologies = JSON.parse(technologies)
+        } catch {
+          technologies = technologies.split(',').map(t => t.trim()).filter(t => t)
+        }
+      }
+    }
+
+    const { name, description, previewUrl, detailsUrl } = req.body
+    
+    // Si hay archivo subido, usar su URL y eliminar la anterior
+    let imageUrl = req.body.image
+    // Si image viene como array (FormData puede duplicar campos), tomar el primer valor
+    if (Array.isArray(imageUrl)) {
+      imageUrl = imageUrl[0]
+    }
+    if (req.file) {
+      // Eliminar imagen anterior si existe y no es una URL externa
+      if (currentProject.image && !currentProject.image.startsWith('http')) {
+        // Extraer el nombre del archivo de la URL
+        const oldFilename = currentProject.image.split('/').pop()
+        deleteFile(oldFilename)
+      }
+      imageUrl = getFileUrl(req.file.filename, req)
+    } else if (imageUrl === undefined) {
+      imageUrl = currentProject.image
+    }
+
+    const updateData = {}
+    if (name !== undefined) updateData.name = name
+    if (description !== undefined) updateData.description = description
+    if (technologies !== undefined) updateData.technologies = technologies
+    if (imageUrl !== undefined) updateData.image = imageUrl
+    if (previewUrl !== undefined) updateData.previewUrl = previewUrl
+    if (detailsUrl !== undefined) updateData.detailsUrl = detailsUrl
 
     const updatedProject = await prisma.project.update({
       where: { id: parseInt(id) },
-      data: {
-        name,
-        description,
-        technologies,
-        image,
-        previewUrl,
-        detailsUrl,
-      },
+      data: updateData,
     })
 
     res.json({
@@ -102,6 +174,7 @@ export const updateProject = async (req, res) => {
       project: updatedProject,
     })
   } catch (error) {
+    if (req.file) deleteFile(req.file.filename)
     if (error.code === 'P2025') {
       return res.status(404).json({
         success: false,
