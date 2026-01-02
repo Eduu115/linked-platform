@@ -15,3 +15,4 @@ TODO:
 - [ ] añadir imagenes a la web en general
 - [ ] añadir dashboard de administación y de cliente donde pueda ver los servicios y suscripciones
 - [ ] adaptarlo para nginx y proxi para serdrive.com y alojarlo en el servidor
+- [ ] crear un backend java para gestion de pagos y servicios e informacion de servicios y proyectos
