@@ -62,9 +62,10 @@ services:
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-linked_platform}?schema=public
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRE: ${JWT_EXPIRE:-7d}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
-    ports:
-      - "3000:3000"
+      FRONTEND_URL: ${FRONTEND_URL:-https://serdrive.com}
+    # No exponer puerto públicamente, solo accesible desde Nginx Proxy Manager
+    expose:
+      - "3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,11 +103,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
+      args:
+        - VITE_API_URL=${VITE_API_URL:-https://serdrive.com/api}
     container_name: linked-platform-frontend-prod
-    environment:
-      VITE_API_URL: ${API_URL:-http://localhost:3000}
-    ports:
-      - "80:80"
+    # No exponer puerto públicamente, solo accesible desde Nginx Proxy Manager
+    expose:
+      - "80"
     depends_on:
       - backend-prod
     networks:

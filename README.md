@@ -28,8 +28,20 @@ La base de datos se inicializa automáticamente con datos de prueba.
 ### Producción
 
 ```bash
-docker-compose --profile prod up --build -d
+# 1. Configurar variables de entorno
+cp .env.production.example .env
+# Edita .env con tus valores (JWT_SECRET, DB_PASSWORD, URLs, etc.)
+
+# 2. Construir e iniciar
+docker-compose --profile prod build
+docker-compose --profile prod up -d
+
+# O usar el script de despliegue
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh
 ```
+
+**Nota:** Para despliegue con Nginx Proxy Manager y Cloudflare, consulta [DEPLOY.md](./DEPLOY.md)
 
 📖 **Ver [DOCKER.md](./DOCKER.md) para más detalles sobre Docker**
 
