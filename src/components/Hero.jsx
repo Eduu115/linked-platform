@@ -11,7 +11,7 @@ const Hero = () => {
           transition={{ duration: 0.6 }}
           className="mb-8"
         >
-          <div className="w-32 h-32 md:w-40 md:h-40 mx-auto mb-8 rounded-full bg-gray-200 overflow-hidden ring-4 ring-gray-100">
+          <div className="w-32 h-32 md:w-40 md:h-40 mx-auto mb-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden ring-4 ring-gray-100 dark:ring-gray-800">
             <img
               src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop"
               alt="Profile"
@@ -24,18 +24,18 @@ const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6"
+          className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6"
         >
           Desarrollador
           <br />
-          <span className="text-gray-600">Full Stack</span>
+          <span className="text-gray-600 dark:text-gray-300">Full Stack</span>
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-lg md:text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed"
+          className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed"
         >
           Creo experiencias digitales excepcionales combinando diseño elegante
           con código de calidad.
@@ -49,13 +49,13 @@ const Hero = () => {
         >
           <Link
             to="/projects"
-            className="px-8 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors shadow-sm"
+            className="px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-sm"
           >
             Ver Proyectos
           </Link>
           <a
             href="#services"
-            className="px-8 py-3 bg-transparent text-gray-900 border-2 border-gray-900 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            className="px-8 py-3 bg-transparent text-gray-900 dark:text-white border-2 border-gray-900 dark:border-white rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             Servicios
           </a>

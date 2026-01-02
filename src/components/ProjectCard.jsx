@@ -12,9 +12,9 @@ const ProjectCard = ({ project, index }) => {
       transition={{ duration: 0.5, delay: index * 0.1 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300"
+      className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-xl dark:hover:shadow-gray-900/50 transition-all duration-300"
     >
-      <div className="relative h-48 md:h-64 overflow-hidden bg-gray-100">
+      <div className="relative h-48 md:h-64 overflow-hidden bg-gray-100 dark:bg-gray-700">
         <img
           src={project.image}
           alt={project.name}
@@ -30,10 +30,10 @@ const ProjectCard = ({ project, index }) => {
       </div>
 
       <div className="p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
           {project.name}
         </h3>
-        <p className="text-gray-600 mb-4 text-sm leading-relaxed">
+        <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm leading-relaxed">
           {project.description}
         </p>
 
@@ -41,7 +41,7 @@ const ProjectCard = ({ project, index }) => {
           {project.technologies.map((tech, idx) => (
             <span
               key={idx}
-              className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full"
+              className="px-3 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full"
             >
               {tech}
             </span>
@@ -53,13 +53,13 @@ const ProjectCard = ({ project, index }) => {
             href={project.previewUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 px-4 py-2 bg-gray-900 text-white text-center rounded-lg font-medium hover:bg-gray-800 transition-colors text-sm"
+            className="flex-1 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-center rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-sm"
           >
             Preview
           </a>
           <a
             href={project.detailsUrl}
-            className="flex-1 px-4 py-2 bg-transparent text-gray-900 border-2 border-gray-900 text-center rounded-lg font-medium hover:bg-gray-50 transition-colors text-sm"
+            className="flex-1 px-4 py-2 bg-transparent text-gray-900 dark:text-white border-2 border-gray-900 dark:border-white text-center rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm"
           >
             Detalles
           </a>

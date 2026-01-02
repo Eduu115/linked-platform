@@ -3,12 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-white antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
   
