@@ -1,4 +1,4 @@
-export const detailedServices = [
+export let detailedServices = [
   {
     id: 1,
     category: 'Hosting',
@@ -141,4 +141,9 @@ export const detailedServices = [
     popular: false,
   },
 ]
+
+export const addService = (service) => {
+  detailedServices.push(service)
+  return service
+}
 

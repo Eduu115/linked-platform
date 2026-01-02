@@ -1,6 +1,38 @@
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import { addSubscription } from '../data/subscriptions'
 
 const ServicePricingCard = ({ service, index }) => {
+  const navigate = useNavigate()
+  const { isAuthenticated, isClient, user } = useAuth()
+
+  const handleSubscribe = () => {
+    if (!isAuthenticated()) {
+      navigate('/login')
+      return
+    }
+
+    if (!isClient()) {
+      alert('Solo los clientes pueden contratar servicios')
+      return
+    }
+
+    // Agregar suscripción
+    addSubscription({
+      userId: user.id,
+      serviceId: service.id,
+      status: 'active',
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: service.period === 'mes' 
+        ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        : null,
+      price: parseFloat(service.price),
+      period: service.period,
+    })
+
+    alert('Servicio contratado exitosamente')
+  }
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -58,13 +90,14 @@ const ServicePricingCard = ({ service, index }) => {
         </ul>
 
         <button
+          onClick={handleSubscribe}
           className={`w-full py-3 rounded-lg font-medium transition-colors ${
             service.popular
               ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200'
               : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
           }`}
         >
-          Contratar Ahora
+          {isAuthenticated() ? 'Contratar Ahora' : 'Iniciar Sesión para Contratar'}
         </button>
       </div>
     </motion.div>

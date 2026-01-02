@@ -1,4 +1,4 @@
-export const projects = [
+export let projects = [
   {
     id: 1,
     name: 'E-commerce Platform',
@@ -54,4 +54,9 @@ export const projects = [
     detailsUrl: '/projects/api',
   },
 ]
+
+export const addProject = (project) => {
+  projects.push(project)
+  return project
+}
 

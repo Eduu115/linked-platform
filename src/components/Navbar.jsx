@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTheme } from '../contexts/ThemeContext'
+import { useAuth } from '../contexts/AuthContext'
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
+  const { user, isAuthenticated, isAdmin, isClient, logout } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,11 +31,34 @@ const Navbar = () => {
     }
   }
 
-  const navItems = [
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
+
+  const publicNavItems = [
     { path: '/', label: 'Inicio' },
     { path: '/services', label: 'Servicios' },
     { path: '/projects', label: 'Proyectos' },
   ]
+
+  const getNavItems = () => {
+    if (isAdmin()) {
+      return [
+        { path: '/', label: 'Inicio' },
+        { path: '/admin/dashboard', label: 'Admin' },
+      ]
+    }
+    if (isClient()) {
+      return [
+        { path: '/', label: 'Inicio' },
+        { path: '/services', label: 'Servicios' },
+        { path: '/projects', label: 'Proyectos' },
+        { path: '/client/dashboard', label: 'Dashboard' },
+      ]
+    }
+    return publicNavItems
+  }
 
   return (
     <motion.nav
@@ -56,7 +82,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            {navItems.map((item) => {
+            {getNavItems().map((item) => {
               const isActive = location.pathname === item.path
               return (
                 <Link
@@ -72,6 +98,37 @@ const Navbar = () => {
                 </Link>
               )
             })}
+
+            {!isAuthenticated() && (
+              <>
+                <Link
+                  to="/login"
+                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Iniciar Sesión
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-sm"
+                >
+                  Registrarse
+                </Link>
+              </>
+            )}
+
+            {isAuthenticated() && (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  {user?.name}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Cerrar Sesión
+                </button>
+              </div>
+            )}
             
             {/* Dark Mode Toggle */}
             <button
