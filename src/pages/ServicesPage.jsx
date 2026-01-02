@@ -8,6 +8,11 @@ const ServicesPage = () => {
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('Todos')
 
+  // Scroll al principio cuando se carga la página
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
   useEffect(() => {
     const fetchServices = async () => {
       try {

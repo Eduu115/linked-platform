@@ -3,15 +3,19 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { subscriptionsAPI } from '../services/api'
+import QuickAuthModal from './QuickAuthModal'
+import SubscriptionConfirmModal from './SubscriptionConfirmModal'
 
 const ServicePricingCard = ({ service, index }) => {
   const navigate = useNavigate()
   const { isAuthenticated, isClient, user } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
 
   const handleSubscribe = async () => {
     if (!isAuthenticated()) {
-      navigate('/login')
+      setShowAuthModal(true)
       return
     }
 
@@ -20,6 +24,11 @@ const ServicePricingCard = ({ service, index }) => {
       return
     }
 
+    // Mostrar modal de confirmación
+    setShowConfirmModal(true)
+  }
+
+  const createSubscription = async () => {
     setLoading(true)
     try {
       const endDate = service.period === 'mes' 
@@ -35,25 +44,57 @@ const ServicePricingCard = ({ service, index }) => {
         period: service.period,
       })
 
+      // Cerrar modal y mostrar éxito
+      setShowConfirmModal(false)
       alert('Servicio contratado exitosamente')
+      
+      // En el futuro, aquí se redirigiría a la plataforma de pago
+      // navigate('/payment', { state: { serviceId: service.id } })
     } catch (error) {
       alert(error.message || 'Error al contratar el servicio')
     } finally {
       setLoading(false)
     }
   }
+
+  const handleAuthSuccess = () => {
+    // Después de autenticarse exitosamente, mostrar modal de confirmación
+    if (isClient()) {
+      setShowConfirmModal(true)
+    }
+  }
+
+  const handleConfirmSubscription = () => {
+    createSubscription()
+  }
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className={`relative bg-white dark:bg-gray-800 rounded-lg border-2 overflow-hidden transition-all duration-300 hover:shadow-xl dark:hover:shadow-gray-900/50 ${
-        service.popular
-          ? 'border-gray-900 dark:border-white shadow-lg'
-          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-      }`}
-    >
+    <>
+      <QuickAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={handleAuthSuccess}
+        serviceName={service.title}
+      />
+
+      <SubscriptionConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmSubscription}
+        service={service}
+        loading={loading}
+      />
+      
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+        className={`relative bg-white dark:bg-gray-800 rounded-lg border-2 overflow-hidden transition-all duration-300 hover:shadow-xl dark:hover:shadow-gray-900/50 ${
+          service.popular
+            ? 'border-gray-900 dark:border-white shadow-lg'
+            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+        }`}
+      >
       {service.popular && (
         <div className="absolute top-0 right-0 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-1 text-xs font-semibold rounded-bl-lg">
           Popular
@@ -138,6 +179,7 @@ const ServicePricingCard = ({ service, index }) => {
         </button>
       </div>
     </motion.div>
+    </>
   )
 }
 

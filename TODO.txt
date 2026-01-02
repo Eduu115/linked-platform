@@ -20,3 +20,4 @@ TODO:
 - [ ] mejorar seo
 - [ ] arreglar menu hamburguesa no funcional
 - [ ] añadir docker y .env 
+- [ ] puedo vincular contacts app a este dominio tambien tipo agenda.serdrive.com o algo asi y añadir un menu de "aplicaciones de serdrive gratuitas" o algo asi y lo linkeo

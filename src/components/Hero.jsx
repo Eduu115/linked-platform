@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import profilePic from '../assets/images/profilePic.png'
 
 const Hero = () => {
   return (
@@ -11,9 +12,9 @@ const Hero = () => {
           transition={{ duration: 0.6 }}
           className="mb-8"
         >
-          <div className="w-32 h-32 md:w-40 md:h-40 mx-auto mb-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden ring-4 ring-gray-100 dark:ring-gray-800">
+          <div className="w-32 h-32 md:w-60 md:h-60 mx-auto mb-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden ring-4 ring-gray-100 dark:ring-gray-800">
             <img
-              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop"
+              src={profilePic}
               alt="Profile"
               className="w-full h-full object-cover"
             />
