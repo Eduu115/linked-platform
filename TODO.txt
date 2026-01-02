@@ -1,0 +1,17 @@
+TODO:
+- [ ] Añadir más servicios
+- [ ] Añadir más proyectos
+- [ ] Añadir más tecnologías
+- [ ] Añadir más experiencia
+- [ ] Añadir más educación
+- [ ] Añadir más habilidades
+- [ ] Añadir más certificaciones
+- [ ] Añadir más contacto
+- [ ] Añadir más redes sociales
+- [ ] Añadir más enlaces
+- [ ] Añadir más información
+- [ ] Añadir más información
+- [ ] añadir imagenes a los servicios
+- [ ] añadir imagenes a la web en general
+- [ ] añadir dashboard de administación y de cliente donde pueda ver los servicios y suscripciones
+- [ ] adaptarlo para nginx y proxi para serdrive.com y alojarlo en el servidor
