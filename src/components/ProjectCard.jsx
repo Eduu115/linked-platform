@@ -38,14 +38,26 @@ const ProjectCard = ({ project, index }) => {
         </p>
 
         <div className="flex flex-wrap gap-2 mb-4">
-          {project.technologies.map((tech, idx) => (
-            <span
-              key={idx}
-              className="px-3 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full"
-            >
-              {tech}
-            </span>
-          ))}
+          {Array.isArray(project.technologies) 
+            ? project.technologies.map((tech, idx) => (
+                <span
+                  key={idx}
+                  className="px-3 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full"
+                >
+                  {tech}
+                </span>
+              ))
+            : typeof project.technologies === 'string'
+              ? project.technologies.split(',').map((tech, idx) => (
+                  <span
+                    key={idx}
+                    className="px-3 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full"
+                  >
+                    {tech.trim()}
+                  </span>
+                ))
+              : null
+          }
         </div>
 
         <div className="flex gap-3">

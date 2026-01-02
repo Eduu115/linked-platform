@@ -1,17 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { detailedServices } from '../data/detailedServices'
+import { servicesAPI } from '../services/api'
 import ServicePricingCard from '../components/ServicePricingCard'
 
 const ServicesPage = () => {
+  const [services, setServices] = useState([])
+  const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('Todos')
 
-  const categories = ['Todos', 'Hosting', 'Cloud Storage', 'Clases', 'Consultoría']
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const data = await servicesAPI.getAll()
+        setServices(Array.isArray(data) ? data : [])
+      } catch (error) {
+        console.error('Error fetching services:', error)
+        setServices([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchServices()
+  }, [])
+
+  // Obtener categorías únicas de los servicios
+  const categories = ['Todos', ...new Set(services.map(s => s.category).filter(Boolean))]
 
   const filteredServices =
     selectedCategory === 'Todos'
-      ? detailedServices
-      : detailedServices.filter((service) => service.category === selectedCategory)
+      ? services
+      : services.filter((service) => service.category === selectedCategory)
 
   return (
     <div className="pt-20 md:pt-32 pb-20">
@@ -53,11 +71,21 @@ const ServicesPage = () => {
         </motion.div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {filteredServices.map((service, index) => (
-            <ServicePricingCard key={service.id} service={service} index={index} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 dark:text-gray-400">Cargando servicios...</p>
+          </div>
+        ) : filteredServices.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 dark:text-gray-400">No hay servicios disponibles</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {filteredServices.map((service, index) => (
+              <ServicePricingCard key={service.id} service={service} index={index} />
+            ))}
+          </div>
+        )}
 
         {/* Contact Section */}
         <motion.div

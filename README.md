@@ -2,106 +2,107 @@
 
 Una plataforma web tipo portfolio profesional minimalista y premium, diseñada para centralizar proyectos y servicios como desarrollador.
 
-## ✨ Características
+## 🚀 Inicio Rápido con Docker (Recomendado)
 
-- 🎨 **Diseño Premium Minimalista** - Estética limpia y elegante con mucho espacio en blanco
-- 📱 **Totalmente Responsive** - Mobile-first, adaptado a todos los dispositivos
-- ⚡ **Rendimiento Optimizado** - Construido con Vite para carga ultrarrápida
-- 🎭 **Animaciones Suaves** - Transiciones elegantes con Framer Motion
-- 🧩 **Arquitectura Modular** - Componentes reutilizables y código escalable
-- 🎯 **SEO Friendly** - Estructura optimizada para motores de búsqueda
-
-## 🚀 Inicio Rápido
-
-### Instalación
-```bash
-npm install
-```
+### Prerrequisitos
+- Docker Desktop instalado
+- Docker Compose v3.8+
 
 ### Desarrollo
+
 ```bash
+# Construir e iniciar todos los servicios
+docker-compose --profile dev up --build
+
+# O en segundo plano
+docker-compose --profile dev up -d --build
+```
+
+Esto iniciará:
+- **PostgreSQL** en `localhost:5432`
+- **Backend API** en `http://localhost:3000`
+- **Frontend** en `http://localhost:5173`
+
+La base de datos se inicializa automáticamente con datos de prueba.
+
+### Producción
+
+```bash
+docker-compose --profile prod up --build -d
+```
+
+📖 **Ver [DOCKER.md](./DOCKER.md) para más detalles sobre Docker**
+
+## 🛠️ Instalación Manual (Sin Docker)
+
+### Frontend
+
+```bash
+npm install
 npm run dev
 ```
 
-El servidor de desarrollo se iniciará en `http://localhost:5173`
+### Backend
 
-### Build para Producción
 ```bash
-npm run build
+cd server
+npm install
+cp .env.example .env
+# Configura DATABASE_URL en .env
+npm run db:migrate
+npm run db:seed
+npm run dev
 ```
 
-### Preview del Build
-```bash
-npm run preview
-```
+📖 **Ver [server/README.md](./server/README.md) para más detalles del backend**
+
+## ✨ Características
+
+- 🎨 **Diseño Premium Minimalista** - Estética limpia y elegante
+- 📱 **Totalmente Responsive** - Mobile-first
+- ⚡ **Rendimiento Optimizado** - Vite + React
+- 🎭 **Animaciones Suaves** - Framer Motion
+- 🧩 **Arquitectura Modular** - Componentes reutilizables
+- 🔐 **Sistema de Autenticación** - JWT con roles (Admin/Cliente)
+- 🗄️ **Base de Datos PostgreSQL** - Con Prisma ORM
+- 🐳 **Dockerizado** - Fácil despliegue
 
 ## 🛠️ Stack Tecnológico
 
-- **React 18** - Biblioteca de UI moderna
-- **Vite** - Herramienta de construcción ultrarrápida
-- **Tailwind CSS** - Framework CSS utility-first
-- **React Router** - Enrutamiento para SPA
-- **Framer Motion** - Animaciones fluidas y elegantes
-- **ESLint** - Linter para código JavaScript/JSX
+### Frontend
+- **React 18** - Biblioteca de UI
+- **Vite** - Build tool
+- **Tailwind CSS** - Estilos
+- **React Router** - Routing
+- **Framer Motion** - Animaciones
+
+### Backend
+- **Node.js** - Runtime
+- **Express** - Framework web
+- **PostgreSQL** - Base de datos
+- **Prisma** - ORM
+- **JWT** - Autenticación
 
 ## 📁 Estructura del Proyecto
 
 ```
-src/
- ├─ components/        # Componentes reutilizables
- │   ├─ Navbar.jsx     # Navegación principal
- │   ├─ Hero.jsx       # Sección hero
- │   ├─ Services.jsx   # Lista de servicios
- │   ├─ ServiceCard.jsx
- │   ├─ Projects.jsx   # Lista de proyectos
- │   ├─ ProjectCard.jsx
- │   ├─ Footer.jsx     # Pie de página
- │   └─ Layout.jsx     # Layout principal
- ├─ pages/             # Páginas de la aplicación
- │   ├─ Home.jsx       # Página de inicio
- │   └─ Projects.jsx   # Página de proyectos
- ├─ data/              # Datos estáticos
- │   ├─ services.js    # Array de servicios
- │   └─ projects.js    # Array de proyectos
- ├─ assets/            # Recursos estáticos
- ├─ App.jsx            # Componente raíz
- └─ main.jsx           # Punto de entrada
+linked-platform/
+├── server/              # Backend API
+│   ├── src/
+│   ├── prisma/
+│   └── Dockerfile
+├── src/                 # Frontend React
+│   ├── components/
+│   ├── pages/
+│   └── contexts/
+├── docker-compose.yml   # Docker Compose
+└── Dockerfile.frontend  # Frontend Docker
 ```
 
-## 🎨 Personalización
+## 🔑 Credenciales de Prueba
 
-### Agregar Proyectos
-
-Edita `src/data/projects.js` para agregar tus proyectos:
-
-```javascript
-{
-  id: 1,
-  name: 'Nombre del Proyecto',
-  description: 'Descripción del proyecto',
-  technologies: ['React', 'Node.js'],
-  image: 'url-de-la-imagen',
-  previewUrl: 'https://...',
-  detailsUrl: '/projects/proyecto',
-}
-```
-
-### Agregar Servicios
-
-Edita `src/data/services.js` para agregar tus servicios:
-
-```javascript
-{
-  id: 1,
-  title: 'Título del Servicio',
-  description: 'Descripción del servicio',
-  icon: '💻',
-}
-```
-
-### Cambiar Colores
-
-Edita `tailwind.config.js` para personalizar la paleta de colores.
+- **Admin**: `admin@example.com` / `admin123`
+- **Cliente**: `cliente@example.com` / `cliente123`
 
 ## 📝 Licencia
 

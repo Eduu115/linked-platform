@@ -1,0 +1,123 @@
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: linked-platform-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-linked_platform}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - linked-platform-network
+    profiles:
+      - dev
+      - prod
+
+  # Backend API
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    container_name: linked-platform-backend
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-linked_platform}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production}
+      JWT_EXPIRE: ${JWT_EXPIRE:-7d}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    command: bash -c "chmod +x scripts/*.sh && ./scripts/init-db.sh && npm run dev"
+    networks:
+      - linked-platform-network
+    restart: unless-stopped
+    profiles:
+      - dev
+
+  # Backend API (Producción)
+  backend-prod:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: linked-platform-backend-prod
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-linked_platform}?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRE: ${JWT_EXPIRE:-7d}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: bash -c "chmod +x scripts/*.sh && ./scripts/init-db.sh && npm start"
+    networks:
+      - linked-platform-network
+    restart: unless-stopped
+    profiles:
+      - prod
+
+  # Frontend React (Desarrollo)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: linked-platform-frontend
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api}
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev -- --host
+    networks:
+      - linked-platform-network
+    restart: unless-stopped
+    profiles:
+      - dev
+
+  # Frontend React (Producción)
+  frontend-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: linked-platform-frontend-prod
+    environment:
+      VITE_API_URL: ${API_URL:-http://localhost:3000}
+    ports:
+      - "80:80"
+    depends_on:
+      - backend-prod
+    networks:
+      - linked-platform-network
+    restart: unless-stopped
+    profiles:
+      - prod
+
+volumes:
+  postgres_data:
+
+networks:
+  linked-platform-network:
+    driver: bridge

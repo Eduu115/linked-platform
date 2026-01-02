@@ -1,13 +1,15 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { addSubscription } from '../data/subscriptions'
+import { subscriptionsAPI } from '../services/api'
 
 const ServicePricingCard = ({ service, index }) => {
   const navigate = useNavigate()
   const { isAuthenticated, isClient, user } = useAuth()
+  const [loading, setLoading] = useState(false)
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     if (!isAuthenticated()) {
       navigate('/login')
       return
@@ -18,20 +20,27 @@ const ServicePricingCard = ({ service, index }) => {
       return
     }
 
-    // Agregar suscripción
-    addSubscription({
-      userId: user.id,
-      serviceId: service.id,
-      status: 'active',
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: service.period === 'mes' 
-        ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        : null,
-      price: parseFloat(service.price),
-      period: service.period,
-    })
+    setLoading(true)
+    try {
+      const endDate = service.period === 'mes' 
+        ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        : null
 
-    alert('Servicio contratado exitosamente')
+      await subscriptionsAPI.create({
+        serviceId: service.id,
+        status: 'active',
+        startDate: new Date().toISOString(),
+        endDate: endDate,
+        price: parseFloat(service.price),
+        period: service.period,
+      })
+
+      alert('Servicio contratado exitosamente')
+    } catch (error) {
+      alert(error.message || 'Error al contratar el servicio')
+    } finally {
+      setLoading(false)
+    }
   }
   return (
     <motion.div
@@ -69,35 +78,63 @@ const ServicePricingCard = ({ service, index }) => {
         </div>
 
         <ul className="space-y-3 mb-8">
-          {service.features.map((feature, idx) => (
-            <li key={idx} className="flex items-start">
-              <svg
-                className="w-5 h-5 text-gray-900 dark:text-white mr-3 flex-shrink-0 mt-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              <span className="text-gray-700 dark:text-gray-300 text-sm">{feature}</span>
-            </li>
-          ))}
+          {Array.isArray(service.features) 
+            ? service.features.map((feature, idx) => (
+                <li key={idx} className="flex items-start">
+                  <svg
+                    className="w-5 h-5 text-gray-900 dark:text-white mr-3 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span className="text-gray-700 dark:text-gray-300 text-sm">{feature}</span>
+                </li>
+              ))
+            : typeof service.features === 'string'
+              ? service.features.split('\n').filter(f => f.trim()).map((feature, idx) => (
+                  <li key={idx} className="flex items-start">
+                    <svg
+                      className="w-5 h-5 text-gray-900 dark:text-white mr-3 flex-shrink-0 mt-0.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span className="text-gray-700 dark:text-gray-300 text-sm">{feature.trim()}</span>
+                  </li>
+                ))
+              : null
+          }
         </ul>
 
         <button
           onClick={handleSubscribe}
+          disabled={loading}
           className={`w-full py-3 rounded-lg font-medium transition-colors ${
             service.popular
-              ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
+              ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50'
           }`}
         >
-          {isAuthenticated() ? 'Contratar Ahora' : 'Iniciar Sesión para Contratar'}
+          {loading 
+            ? 'Procesando...' 
+            : isAuthenticated() 
+              ? 'Contratar Ahora' 
+              : 'Iniciar Sesión para Contratar'
+          }
         </button>
       </div>
     </motion.div>

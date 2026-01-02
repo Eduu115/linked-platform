@@ -1,9 +1,28 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { projects } from '../data/projects'
+import { projectsAPI } from '../services/api'
 import ProjectCard from './ProjectCard'
 
 const Projects = ({ limit, showViewAll = false }) => {
+  const [projects, setProjects] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const data = await projectsAPI.getAll()
+        setProjects(Array.isArray(data) ? data : [])
+      } catch (error) {
+        console.error('Error fetching projects:', error)
+        setProjects([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProjects()
+  }, [])
+
   const displayedProjects = limit ? projects.slice(0, limit) : projects
   const hasMoreProjects = limit && projects.length > limit
 
@@ -25,11 +44,21 @@ const Projects = ({ limit, showViewAll = false }) => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {displayedProjects.map((project, index) => (
-            <ProjectCard key={project.id} project={project} index={index} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 dark:text-gray-400">Cargando proyectos...</p>
+          </div>
+        ) : displayedProjects.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 dark:text-gray-400">No hay proyectos disponibles</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {displayedProjects.map((project, index) => (
+              <ProjectCard key={project.id} project={project} index={index} />
+            ))}
+          </div>
+        )}
 
         {hasMoreProjects && showViewAll && (
           <motion.div

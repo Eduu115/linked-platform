@@ -6,8 +6,8 @@ TODO:
 - [ ] Añadir más educación
 - [ ] Añadir más habilidades
 - [ ] Añadir más certificaciones
-- [ ] Añadir más contacto
-- [ ] Añadir más redes sociales
+- [ ] Añadir más contacto - formulario o algo asi
+- [ ] Añadir más redes sociales - añadir bien los perfiles
 - [ ] Añadir más enlaces
 - [ ] Añadir más información
 - [ ] Añadir más información
@@ -16,3 +16,7 @@ TODO:
 - [ ] añadir dashboard de administación y de cliente donde pueda ver los servicios y suscripciones
 - [ ] adaptarlo para nginx y proxi para serdrive.com y alojarlo en el servidor
 - [ ] crear un backend java para gestion de pagos y servicios e informacion de servicios y proyectos
+- [ ] adaptar modo oscuro/claro segun el del dispositivo
+- [ ] mejorar seo
+- [ ] arreglar menu hamburguesa no funcional
+- [ ] añadir docker y .env 
