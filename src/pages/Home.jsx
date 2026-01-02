@@ -7,7 +7,7 @@ const Home = () => {
     <>
       <Hero />
       <Services />
-      <Projects />
+      <Projects limit={3} showViewAll={true} />
     </>
   )
 }

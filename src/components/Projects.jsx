@@ -1,8 +1,12 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { projects } from '../data/projects'
 import ProjectCard from './ProjectCard'
 
-const Projects = () => {
+const Projects = ({ limit, showViewAll = false }) => {
+  const displayedProjects = limit ? projects.slice(0, limit) : projects
+  const hasMoreProjects = limit && projects.length > limit
+
   return (
     <section className="py-20 md:py-32 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -22,10 +26,27 @@ const Projects = () => {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {projects.map((project, index) => (
+          {displayedProjects.map((project, index) => (
             <ProjectCard key={project.id} project={project} index={index} />
           ))}
         </div>
+
+        {hasMoreProjects && showViewAll && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="text-center mt-12"
+          >
+            <Link
+              to="/projects"
+              className="inline-block px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-sm"
+            >
+              Ver Todos los Proyectos
+            </Link>
+          </motion.div>
+        )}
       </div>
     </section>
   )

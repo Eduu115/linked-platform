@@ -26,9 +26,8 @@ const Hero = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6"
         >
-          Desarrollador
-          <br />
-          <span className="text-gray-600 dark:text-gray-300">Full Stack</span>
+          Eduardo 
+          <span className="text-gray-600 dark:text-gray-300"> Serrano</span>
         </motion.h1>
 
         <motion.p
